@@ -82,7 +82,7 @@ public class DocAsCodeHelper {
                             .collect(Collectors.toList());
                     int i = 0;
                     for (TitleAndFileHolder element : list) {
-                        Path subPath = docsFolder.relativize(element.file);
+                        String subPath = relativizeAndNormalize(docsFolder, element.file);
                         String key;
                         switch (i) {
                         case 0:
@@ -113,6 +113,12 @@ public class DocAsCodeHelper {
         return sb.toString();
     }
 
+    private static String relativizeAndNormalize(Path path, Path other) {
+        return path.relativize(other)
+                .toString()
+                .replace('\\', '/');
+    }
+
     private static String toReferenceDefinition(String key, String value) {
         return ":" + key + ": " + value + "\n";
     }
@@ -134,8 +140,7 @@ public class DocAsCodeHelper {
         if (adocFile.isPresent()) {
             adocFile.get();
 
-            Path relPathToDocs = file.getParent()
-                    .relativize(docsFolder);
+            String relPathToDocs = relativizeAndNormalize(file.getParent(), docsFolder);
             String rootDef = (relPathToDocs.toString()
                     .isEmpty()) ? "" : relPathToDocs.toString() + "/";
             StringBuilder sb = new StringBuilder();
