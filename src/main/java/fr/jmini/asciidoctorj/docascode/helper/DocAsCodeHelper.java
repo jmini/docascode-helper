@@ -236,7 +236,7 @@ public class DocAsCodeHelper {
     static String readFile(Path file) {
         String content;
         try {
-            content = new String(Files.readAllBytes(file));
+            content = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalStateException("Could not read file: " + file, e);
