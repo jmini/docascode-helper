@@ -230,6 +230,7 @@ public class DocAsCodeHelper {
         name = name.replaceAll(" +", " ");
         name = name.trim();
         name = name.replace(" ", "-");
+        name = name.replace(".", "-");
         return name.toLowerCase();
     }
 

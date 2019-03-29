@@ -87,6 +87,7 @@ class DocAsCodeHelperTest {
     void testToName() throws Exception {
         assertThat(DocAsCodeHelper.toAttributeName("'Join' (PIN)")).isEqualTo("join-pin");
         assertThat(DocAsCodeHelper.toAttributeName("visitor(s)")).isEqualTo("visitor-s");
+        assertThat(DocAsCodeHelper.toAttributeName("github.com")).isEqualTo("github-com");
     }
 
 }
