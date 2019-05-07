@@ -1,11 +1,16 @@
-// {root} must point to the `docs/` folder:
+// {root} must point to the `other/` folder:
 ifndef::root[]
 :root: 
 endif::[]
 
 // init this page in case of standalone display:
 ifndef::init[]
-include::{root}../_init.adoc[]
+:init: OK
+endif::[]
+
+// init {imgs} in case of standalone display:
+ifndef::imgs[]
+:imgs: test
 endif::[]
 
 == All pages
