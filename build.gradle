@@ -5,6 +5,7 @@ plugins {
     id 'org.asciidoctor.convert' version '1.5.9.2'
     id 'org.ajoberstar.git-publish' version '2.0.0'
     id 'net.researchgate.release' version '2.6.0'
+    id "de.marcphilipp.nexus-publish" version '0.2.0'
 }
 
 wrapper {
@@ -109,22 +110,19 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            url = version.endsWith('SNAPSHOT') ? mavenPublishUrlSnapshot : mavenPublishUrlRelease
-            credentials {
-                username = project.findProperty('sonatypeUser') ?: ''
-                password = project.findProperty('sonatypePassword') ?: ''
-            }
-        }
-    }
+}
+
+nexusPublishing {
+    packageGroup = 'fr.jmini'
+    username = project.findProperty('sonatypeUser') ?: ''
+    password = project.findProperty('sonatypePassword') ?: ''
 }
 
 model {
     tasks.publishMavenJavaPublicationToMavenLocal {
         dependsOn(project.tasks.signArchives)
     }
-    tasks.publishMavenJavaPublicationToMavenRepository {
+    tasks.publishMavenJavaPublicationToNexusRepository {
         dependsOn(project.tasks.signArchives)
     }
 }
@@ -182,7 +180,7 @@ release {
 
 task doRelease {
     dependsOn(
-        'publish',
+        'publishToNexus',
         'asciidoctor',
         'gitPublishPush'
     )
