@@ -5,11 +5,12 @@ plugins {
     id 'org.asciidoctor.convert' version '1.5.9.2'
     id 'org.ajoberstar.git-publish' version '2.0.0'
     id 'net.researchgate.release' version '2.6.0'
-    id "de.marcphilipp.nexus-publish" version '0.2.0'
+    id 'de.marcphilipp.nexus-publish' version '0.3.0'
+    id 'io.codearte.nexus-staging' version '0.21.0'
 }
 
 wrapper {
-    gradleVersion = '5.0'
+    gradleVersion = '5.6.2'
 }
 
 group = 'fr.jmini.asciidoctorj'
@@ -31,15 +32,15 @@ task javadocJar(type: Jar) {
     classifier = 'javadoc'
 }
 
-artifacts {
-    archives jar
-    archives sourcesJar
-    archives javadocJar
-}
-
 signing {
     useGpgCmd()
-    sign configurations.archives
+    sign(publishing.publications)
+}
+
+tasks.withType(Sign) {
+    onlyIf {
+        project.hasProperty('signing.gnupg.keyName')
+    }
 }
 
 dependencies {
@@ -85,46 +86,23 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact javadocJar
-
-            pom.withXml {
-                def pomFile = file("${project.buildDir}/generated-pom.xml")
-                writeTo(pomFile)
-                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
-                artifact(pomAscFile) {
-                    classifier = null
-                    extension = 'pom.asc'
-                }
-                pomFile.delete()
-            }
-
-            project.tasks.signArchives.signatureFiles.each {
-                artifact(it) {
-                    def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
-                    if (matcher.find()) {
-                        classifier = matcher.group(1)
-                    } else {
-                        classifier = null
-                    }
-                    extension = 'jar.asc'
-                }
-            }
         }
     }
 }
 
 nexusPublishing {
+    repositories {
+        sonatype {
+            username = project.findProperty('sonatypeUser') ?: ''
+            password = project.findProperty('sonatypePassword') ?: ''
+        }
+    }
+}
+
+nexusStaging {
     packageGroup = 'fr.jmini'
     username = project.findProperty('sonatypeUser') ?: ''
     password = project.findProperty('sonatypePassword') ?: ''
-}
-
-model {
-    tasks.publishMavenJavaPublicationToMavenLocal {
-        dependsOn(project.tasks.signArchives)
-    }
-    tasks.publishMavenJavaPublicationToNexusRepository {
-        dependsOn(project.tasks.signArchives)
-    }
 }
 
 def buildDate() {
@@ -180,7 +158,7 @@ release {
 
 task doRelease {
     dependsOn(
-        'publishToNexus',
+        'publishToSonatype',
         'asciidoctor',
         'gitPublishPush'
     )
