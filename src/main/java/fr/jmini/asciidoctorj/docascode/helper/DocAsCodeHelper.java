@@ -14,8 +14,7 @@ import java.util.stream.Collectors;
 
 public class DocAsCodeHelper {
 
-    private static final Pattern TITLE_REGEX = Pattern.compile("={1,5}(.+)");
-
+    private static final Pattern TITLE_REGEX = Pattern.compile("/{0,2}?={1,5}(.+)");
     private static final String ROOT_COMMENT_PREFIX = "// {root} must point to the ";
     private static final String INIT_COMMENT = "// init this page in case of standalone display:";
     private static final String IMGS_COMMENT = "// init {imgs} in case of standalone display:";
