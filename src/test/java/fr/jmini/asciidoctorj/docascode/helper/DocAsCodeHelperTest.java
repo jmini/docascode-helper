@@ -15,6 +15,7 @@ class DocAsCodeHelperTest {
     private static final Path LOREM_FILE = DOCS.resolve("concepts/lorem.adoc");
     private static final Path IPSUM_FILE = DOCS.resolve("concepts/ipsum.adoc");
     private static final Path DOLOR_FILE = DOCS.resolve("concepts/dolor.adoc");
+    private static final Path SITAMET_FILE = DOCS.resolve("concepts/sitamet.adoc");
     private static final Path OTHER = Paths.get("src/test/resources/other");
     private static final Path OTHER_FILE = OTHER.resolve("index.adoc");
 
@@ -43,6 +44,13 @@ class DocAsCodeHelperTest {
         assertThat(dolor).isNotNull();
         assertThat(dolor.getFile()).isEqualTo(DOLOR_FILE);
         assertThat(dolor.getTitle()).isEqualTo("Dolor");
+
+        Optional<AdocFile> optSitamet = DocAsCodeHelper.createAdocFile(SITAMET_FILE);
+        assertThat(optSitamet).isPresent();
+
+        AdocFile sitamet = optSitamet.get();
+        assertThat(sitamet).isNotNull();
+        assertThat(sitamet.getFile()).isEqualTo(SITAMET_FILE);
     }
 
     @Test
@@ -51,6 +59,7 @@ class DocAsCodeHelperTest {
         String loremOriginal = DocAsCodeHelper.readFile(LOREM_FILE);
         String ipsumOriginal = DocAsCodeHelper.readFile(IPSUM_FILE);
         String dolorOriginal = DocAsCodeHelper.readFile(DOLOR_FILE);
+        String sitametOriginal = DocAsCodeHelper.readFile(SITAMET_FILE);
 
         DocAsCodeHelper.sanitizeHeaderInFiles(DOCS, "include::{root}../_init.adoc[]", null);
 
@@ -58,11 +67,13 @@ class DocAsCodeHelperTest {
         String lorem = DocAsCodeHelper.readFile(LOREM_FILE);
         String ipsum = DocAsCodeHelper.readFile(IPSUM_FILE);
         String dolor = DocAsCodeHelper.readFile(DOLOR_FILE);
+        String sitamet = DocAsCodeHelper.readFile(SITAMET_FILE);
 
         assertThat(index).isEqualTo(indexOriginal);
         assertThat(lorem).isEqualTo(loremOriginal);
         assertThat(ipsum).isEqualTo(ipsumOriginal);
         assertThat(dolor).isEqualTo(dolorOriginal);
+        assertThat(sitamet).isEqualTo(sitametOriginal);
     }
 
     @Test
