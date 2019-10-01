@@ -8,6 +8,6 @@ ifndef::init[]
 include::{root}../_init.adoc[]
 endif::[]
 
-//== Dolor
+// end header
 
 sit amet, consectetur adipiscing elit,

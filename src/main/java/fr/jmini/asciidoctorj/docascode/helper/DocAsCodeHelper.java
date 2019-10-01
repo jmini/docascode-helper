@@ -5,16 +5,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class DocAsCodeHelper {
 
-    private static final Pattern TITLE_REGEX = Pattern.compile("/{0,2}?={1,5}(.*)");
     private static final String ROOT_COMMENT_PREFIX = "// {root} must point to the ";
     private static final String INIT_COMMENT = "// init this page in case of standalone display:";
     private static final String IMGS_COMMENT = "// init {imgs} in case of standalone display:";
@@ -25,89 +21,84 @@ public class DocAsCodeHelper {
                 .replace('\\', '/');
     }
 
-    private static String toReferenceDefinition(String key, String value) {
-        return ":" + key + ": " + value + "\n";
+    public static void sanitizeHeaderInFiles(Path docsFolder, String initExpression, String imgsExpression) throws IOException {
+        sanitizeHeaderInFiles(docsFolder, initExpression, imgsExpression, " end header");
     }
 
-    public static void sanitizeHeaderInFiles(Path docsFolder, String initExpression, String imgsExpression) throws IOException {
+    public static void sanitizeHeaderInFiles(Path docsFolder, String initExpression, String imgsExpression, String headerEnd) throws IOException {
+        Pattern headerEndPattern = Pattern.compile("//" + headerEnd);
+
         Files.walk(docsFolder)
                 .filter(f -> f.toFile()
                         .isFile()
                         && f.toFile()
                                 .getName()
                                 .endsWith("adoc"))
-                .forEach(f -> replaceHeader(docsFolder, f, initExpression, imgsExpression));
+                .forEach(f -> replaceHeader(docsFolder, f, initExpression, imgsExpression, headerEnd, headerEndPattern));
     }
 
-    private static void replaceHeader(Path docsFolder, Path file, String initExpression, String imgsExpression) {
+    private static void replaceHeader(Path docsFolder, Path file, String initExpression, String imgsExpression, String headerEnd, Pattern headerEndPattern) {
         String content = readFile(file);
 
-        Optional<AdocFile> adocFile = createAdocFile(file, content);
-        if (adocFile.isPresent()) {
-            adocFile.get();
+        AdocFile adocFile = createAdocFile(headerEndPattern, file, content);
 
-            String relPathToDocs = relativizeAndNormalize(file.getParent(), docsFolder);
-            String rootDef = (relPathToDocs.toString()
-                    .isEmpty()) ? "" : relPathToDocs.toString() + "/";
-            StringBuilder sb = new StringBuilder();
-            sb.append(ROOT_COMMENT_PREFIX + "`" + docsFolder.getFileName() + "/` folder:\n");
-            sb.append("ifndef::root[]\n");
-            sb.append(":root: " + rootDef + "\n");
+        String relPathToDocs = relativizeAndNormalize(file.getParent(), docsFolder);
+        String rootDef = (relPathToDocs.toString()
+                .isEmpty()) ? "" : relPathToDocs.toString() + "/";
+        StringBuilder sb = new StringBuilder();
+        sb.append(ROOT_COMMENT_PREFIX + "`" + docsFolder.getFileName() + "/` folder:\n");
+        sb.append("ifndef::root[]\n");
+        sb.append(":root: " + rootDef + "\n");
+        sb.append("endif::[]\n");
+        sb.append("\n");
+        if (initExpression != null) {
+            sb.append(INIT_COMMENT + "\n");
+            sb.append("ifndef::init[]\n");
+            sb.append(initExpression + "\n");
             sb.append("endif::[]\n");
             sb.append("\n");
-            if (initExpression != null) {
-                sb.append(INIT_COMMENT + "\n");
-                sb.append("ifndef::init[]\n");
-                sb.append(initExpression + "\n");
-                sb.append("endif::[]\n");
-                sb.append("\n");
-            }
-            if (imgsExpression != null) {
-                sb.append(IMGS_COMMENT + "\n");
-                sb.append("ifndef::imgs[]\n");
-                sb.append(imgsExpression + "\n");
-                sb.append("endif::[]\n");
-                sb.append("\n");
-            }
+        }
+        if (imgsExpression != null) {
+            sb.append(IMGS_COMMENT + "\n");
+            sb.append("ifndef::imgs[]\n");
+            sb.append(imgsExpression + "\n");
+            sb.append("endif::[]\n");
+            sb.append("\n");
+        }
 
-            int titleStartPosition = adocFile.get()
-                    .getTitleStartPosition();
+        int endHeaderStartPosition = adocFile.getEndHeaderStartPosition();
 
+        String newContent;
+        if (endHeaderStartPosition > 0) {
             //Keep existing comments:
-            String[] lines = content.substring(0, titleStartPosition)
+            String[] lines = content.substring(0, endHeaderStartPosition)
                     .split("\\r?\\n");
-            List<String> comments = Arrays.stream(lines)
+            Arrays.stream(lines)
                     .filter(s -> !s.startsWith(ROOT_COMMENT_PREFIX))
                     .filter(s -> !Objects.equals(INIT_COMMENT, s))
                     .filter(s -> !Objects.equals(IMGS_COMMENT, s))
                     .filter(s -> s.startsWith("//"))
-                    .collect(Collectors.toList());
-            for (String c : comments) {
-                sb.append(c + "\n");
-            }
+                    .forEach(c -> {
+                        sb.append(c + "\n");
+                    });
 
-            String newContent = sb.toString() + content.substring(titleStartPosition);
-
-            writeFile(file, newContent);
+            newContent = sb.toString() + content.substring(endHeaderStartPosition);
+        } else {
+            sb.append("//" + headerEnd + "\n\n");
+            newContent = sb.toString() + content;
         }
+
+        writeFile(file, newContent);
     }
 
-    static Optional<AdocFile> createAdocFile(Path file) {
-        String content = readFile(file);
-
-        return createAdocFile(file, content);
-    }
-
-    static Optional<AdocFile> createAdocFile(Path file, String content) {
-        Matcher titleMatcher = TITLE_REGEX.matcher(content);
-        if (!titleMatcher.find()) {
-            return Optional.empty();
+    static AdocFile createAdocFile(Pattern pattern, Path file, String content) {
+        Matcher matcher = pattern.matcher(content);
+        if (!matcher.find()) {
+            return new AdocFile(file, 0);
         }
-        String title = titleMatcher.group(1)
-                .trim();
-        int titleStart = titleMatcher.start();
+        int start = matcher.start();
 
-        return Optional.of(new AdocFile(file, title, titleStart));
+        return new AdocFile(file, start);
     }
 
     static String readFile(Path file) {

@@ -8,6 +8,7 @@ ifndef::init[]
 include::{root}../_init.adoc[]
 endif::[]
 
+// end header
 == Lorem
 
 Lorem diam sed, efficitur massa.

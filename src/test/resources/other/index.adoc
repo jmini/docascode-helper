@@ -13,6 +13,8 @@ ifndef::imgs[]
 :imgs: test
 endif::[]
 
+//END-HEADER
+
 == All pages
 
 Concepts:

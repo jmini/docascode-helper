@@ -8,6 +8,8 @@ ifndef::init[]
 include::{root}../_init.adoc[]
 endif::[]
 
+// end header
+
 == All pages
 
 Concepts:

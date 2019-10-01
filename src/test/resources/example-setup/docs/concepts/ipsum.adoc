@@ -8,6 +8,9 @@ ifndef::init[]
 include::{root}../_init.adoc[]
 endif::[]
 
+// This is an important line
+// end header
+
 == Ipsum
 
 Ipsum sed in risus rutrum, commodo quam nec, viverra nulla.

@@ -5,24 +5,18 @@ import java.nio.file.Path;
 public class AdocFile {
 
     private Path file;
-    private String title;
-    private int titleStartPosition;
+    private int endHeaderStartPosition;
 
-    public AdocFile(Path file, String title, int titleStartPosition) {
+    public AdocFile(Path file, int endHeaderStartPosition) {
         this.file = file;
-        this.title = title;
-        this.titleStartPosition = titleStartPosition;
+        this.endHeaderStartPosition = endHeaderStartPosition;
     }
 
     public Path getFile() {
         return file;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public int getTitleStartPosition() {
-        return titleStartPosition;
+    public int getEndHeaderStartPosition() {
+        return endHeaderStartPosition;
     }
 }

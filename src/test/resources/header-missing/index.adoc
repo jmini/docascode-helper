@@ -1,6 +1,6 @@
-// {root} must point to the `docs/` folder:
+// {root} must point to the `header-missing/` folder:
 ifndef::root[]
-:root: ../
+:root: 
 endif::[]
 
 // init this page in case of standalone display:
@@ -10,4 +10,6 @@ endif::[]
 
 // end header
 
-include::dolor.adoc[]
+== Test
+
+This is a test
